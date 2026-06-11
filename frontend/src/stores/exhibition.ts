@@ -21,6 +21,13 @@ function createSeedExhibition(artifactIds: string[]): Exhibition {
   };
 }
 
+function normalizeViewCount(exhibition: Exhibition): Exhibition {
+  if (typeof exhibition.viewCount === 'number' && !Number.isNaN(exhibition.viewCount)) {
+    return exhibition;
+  }
+  return { ...exhibition, viewCount: 0, updatedAt: new Date().toISOString() };
+}
+
 export const useExhibitionStore = defineStore('exhibition', {
   state: () => ({
     exhibitions: [] as Exhibition[],
@@ -32,6 +39,10 @@ export const useExhibitionStore = defineStore('exhibition', {
     publishedByHot: (state) =>
       [...state.exhibitions]
         .filter((exhibition) => exhibition.status === ExhibitionStatus.Published)
+        .map((exhibition) => ({
+          ...exhibition,
+          viewCount: typeof exhibition.viewCount === 'number' && !Number.isNaN(exhibition.viewCount) ? exhibition.viewCount : 0
+        }))
         .sort((a, b) => b.viewCount - a.viewCount)
   },
   actions: {
@@ -43,7 +54,19 @@ export const useExhibitionStore = defineStore('exhibition', {
         await exhibitionRepository.save(seed);
         this.exhibitions = [seed];
       } else {
-        this.exhibitions = records;
+        const normalized: Exhibition[] = [];
+        const dirty: Exhibition[] = [];
+        for (const record of records) {
+          const fixed = normalizeViewCount(record as Exhibition);
+          normalized.push(fixed);
+          if (fixed !== record) {
+            dirty.push(fixed);
+          }
+        }
+        for (const item of dirty) {
+          await exhibitionRepository.save(item);
+        }
+        this.exhibitions = normalized;
       }
       this.loaded = true;
     },
@@ -63,7 +86,8 @@ export const useExhibitionStore = defineStore('exhibition', {
     async incrementViewCount(id: string) {
       const current = this.getById(id);
       if (!current) return;
-      const updated: Exhibition = { ...current, viewCount: current.viewCount + 1, updatedAt: new Date().toISOString() };
+      const base = typeof current.viewCount === 'number' && !Number.isNaN(current.viewCount) ? current.viewCount : 0;
+      const updated: Exhibition = { ...current, viewCount: base + 1, updatedAt: new Date().toISOString() };
       this.exhibitions = this.exhibitions.map((exhibition) => (exhibition.id === id ? updated : exhibition));
       await exhibitionRepository.save(updated);
     },
