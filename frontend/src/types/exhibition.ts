@@ -14,4 +14,4 @@ export interface Exhibition {
   updatedAt: string;
 }
 
-export type ExhibitionDraft = Omit<Exhibition, 'id' | 'createdAt' | 'updatedAt'>;
+export type ExhibitionDraft = Omit<Exhibition, 'id' | 'viewCount' | 'createdAt' | 'updatedAt'>;

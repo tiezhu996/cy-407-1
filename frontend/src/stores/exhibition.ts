@@ -51,7 +51,7 @@ export const useExhibitionStore = defineStore('exhibition', {
       const now = new Date().toISOString();
       const exhibition: Exhibition = {
         ...draft,
-        viewCount: draft.viewCount ?? 0,
+        viewCount: 0,
         id: createId('exhibition'),
         createdAt: now,
         updatedAt: now
