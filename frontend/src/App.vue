@@ -9,6 +9,7 @@
           </RouterLink>
           <nav>
             <RouterLink :to="galleryPath">3D展厅</RouterLink>
+            <RouterLink to="/manage/hot">展览热度</RouterLink>
             <RouterLink to="/manage/artifacts">展品库</RouterLink>
             <RouterLink to="/manage/exhibitions">展览管理</RouterLink>
             <RouterLink :to="tourPath">导览编辑</RouterLink>

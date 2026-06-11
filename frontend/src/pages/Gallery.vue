@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import * as THREE from 'three';
 import SceneCanvas from '@/components/common/SceneCanvas.vue';
@@ -48,7 +48,7 @@ import { useAnnotationStore } from '@/stores/annotation';
 import { useArtifactStore } from '@/stores/artifact';
 import { useExhibitionStore } from '@/stores/exhibition';
 import { useTourStore } from '@/stores/tour';
-import type { Artifact, Tour } from '@/types';
+import { ExhibitionStatus, type Artifact, type Tour } from '@/types';
 import { createGalleryHall, loadArtifactObject } from '@/utils/model-loader';
 import { disposeObject3D } from '@/utils/renderer';
 import { createTourPlayer, type TourPlayerControls } from '@/utils/tour-player';
@@ -69,11 +69,20 @@ const three = useThreeScene(containerRef, { cameraPosition: [5.5, 3.4, 8.2] });
 
 let sceneRoot: THREE.Group | null = null;
 let player: TourPlayerControls | null = null;
+let lastViewedId: string | null = null;
 
 const exhibition = computed(() => {
   const id = String(route.params.id ?? '');
   return exhibitionStore.getById(id) ?? exhibitionStore.exhibitions[0];
 });
+
+function tryIncrementView() {
+  const current = exhibition.value;
+  if (!current || current.status !== ExhibitionStatus.Published) return;
+  if (current.id === lastViewedId) return;
+  lastViewedId = current.id;
+  void exhibitionStore.incrementViewCount(current.id);
+}
 
 const artifacts = computed<Artifact[]>(() => {
   const ids = exhibition.value?.artifactIds ?? [];
@@ -159,6 +168,16 @@ function toggleTour() {
 }
 
 watch(sceneKey, () => void rebuildScene(), { immediate: true });
+
+watch(
+  () => exhibition.value?.id,
+  () => tryIncrementView(),
+  { immediate: true }
+);
+
+onMounted(() => {
+  tryIncrementView();
+});
 
 onBeforeUnmount(() => {
   player?.stop();

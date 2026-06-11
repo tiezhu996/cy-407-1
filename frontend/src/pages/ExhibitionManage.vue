@@ -121,7 +121,8 @@ function emptyDraft(): ExhibitionDraft {
     artifactIds: artifactStore.artifacts.map((artifact) => artifact.id),
     themeColor: '#173f35',
     backgroundMusicUrl: '',
-    status: ExhibitionStatus.Draft
+    status: ExhibitionStatus.Draft,
+    viewCount: 0
   };
 }
 

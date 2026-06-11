@@ -9,6 +9,7 @@ export interface Exhibition {
   themeColor: string;
   backgroundMusicUrl?: string;
   status: ExhibitionStatus;
+  viewCount: number;
   createdAt: string;
   updatedAt: string;
 }

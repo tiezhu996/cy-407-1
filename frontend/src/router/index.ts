@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Gallery from '@/pages/Gallery.vue';
 import ArtifactDetail from '@/pages/ArtifactDetail.vue';
 import ExhibitionManage from '@/pages/ExhibitionManage.vue';
+import ExhibitionHot from '@/pages/ExhibitionHot.vue';
 import TourEditor from '@/pages/TourEditor.vue';
 import ArtifactManage from '@/pages/ArtifactManage.vue';
 
@@ -26,6 +27,11 @@ const router = createRouter({
       path: '/manage/exhibitions',
       name: 'exhibition-manage',
       component: ExhibitionManage
+    },
+    {
+      path: '/manage/hot',
+      name: 'exhibition-hot',
+      component: ExhibitionHot
     },
     {
       path: '/manage/tours/:id',

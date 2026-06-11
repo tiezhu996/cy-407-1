@@ -15,6 +15,7 @@ function createSeedExhibition(artifactIds: string[]): Exhibition {
     themeColor: '#173f35',
     backgroundMusicUrl: '',
     status: ExhibitionStatus.Published,
+    viewCount: 0,
     createdAt: now,
     updatedAt: now
   };
@@ -27,7 +28,11 @@ export const useExhibitionStore = defineStore('exhibition', {
   }),
   getters: {
     getById: (state) => (id: string) => state.exhibitions.find((exhibition) => exhibition.id === id),
-    published: (state) => state.exhibitions.filter((exhibition) => exhibition.status === ExhibitionStatus.Published)
+    published: (state) => state.exhibitions.filter((exhibition) => exhibition.status === ExhibitionStatus.Published),
+    publishedByHot: (state) =>
+      [...state.exhibitions]
+        .filter((exhibition) => exhibition.status === ExhibitionStatus.Published)
+        .sort((a, b) => b.viewCount - a.viewCount)
   },
   actions: {
     async load() {
@@ -46,6 +51,7 @@ export const useExhibitionStore = defineStore('exhibition', {
       const now = new Date().toISOString();
       const exhibition: Exhibition = {
         ...draft,
+        viewCount: draft.viewCount ?? 0,
         id: createId('exhibition'),
         createdAt: now,
         updatedAt: now
@@ -53,6 +59,13 @@ export const useExhibitionStore = defineStore('exhibition', {
       this.exhibitions.unshift(exhibition);
       await exhibitionRepository.save(exhibition);
       return exhibition;
+    },
+    async incrementViewCount(id: string) {
+      const current = this.getById(id);
+      if (!current) return;
+      const updated: Exhibition = { ...current, viewCount: current.viewCount + 1, updatedAt: new Date().toISOString() };
+      this.exhibitions = this.exhibitions.map((exhibition) => (exhibition.id === id ? updated : exhibition));
+      await exhibitionRepository.save(updated);
     },
     async updateExhibition(id: string, patch: Partial<ExhibitionDraft>) {
       const current = this.getById(id);
